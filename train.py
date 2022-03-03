@@ -9,6 +9,7 @@ from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 from azureml.core.run import Run
 from azureml.data.dataset_factory import TabularDatasetFactory
+from azureml.data import TabularDataset
 
 def clean_data(data):
     # Dict for cleaning data
@@ -54,19 +55,27 @@ def main():
     # TODO: Create TabularDataset using TabularDatasetFactory
     # Data is located at:
     # "https://automlsamplenotebookdata.blob.core.windows.net/automl-sample-notebook-data/bankmarketing_train.csv"
+    data_url = "https://automlsamplenotebookdata.blob.core.windows.net/automl-sample-notebook-data/bankmarketing_train.csv"
+    ds = TabularDatasetFactory.from_delimited_files(data_url)
+    ### YOUR CODE HERE ###
 
-    ds = ### YOUR CODE HERE ###
-    
     x, y = clean_data(ds)
 
     # TODO: Split data into train and test sets.
 
     ### YOUR CODE HERE ###a
+    x_train, x_test = train_test_split(x, test_size=0.2)
+    y_train, y_test = train_test_split(y, test_size=0.2)
 
     model = LogisticRegression(C=args.C, max_iter=args.max_iter).fit(x_train, y_train)
 
     accuracy = model.score(x_test, y_test)
     run.log("Accuracy", np.float(accuracy))
+    outputs_dir = 'outputs'
+    os.makedirs(outputs_dir, exist_ok=True)
+    output_model = os.path.join(outputs_dir, "{}_model.joblib".format(run.id))
+    joblib.dump(model, output_model)
+
 
 if __name__ == '__main__':
     main()
